@@ -1,0 +1,19 @@
+{
+  "name": "lottries",
+  "version": "1.0.0",
+  "description": "",
+  "main": "simple.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^2.2.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.9"
+  }
+}
