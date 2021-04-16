@@ -16,6 +16,7 @@
  * public/private key pairs. If you're publishing your code to GitHub make sure you load this
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
+ * @format
  */
 
 // const HDWalletProvider = require('@truffle/hdwallet-provider');
@@ -44,7 +45,7 @@ module.exports = {
     //
     development: {
       host: "127.0.0.1", // Localhost (default: none)
-      port: 7545, // Standard Ethereum port (default: none)
+      port: 9545, // Standard Ethereum port (default: none)
       network_id: "*", // Any network (default: none)
     },
     // Another network with more advanced options...

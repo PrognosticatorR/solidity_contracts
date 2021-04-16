@@ -8,7 +8,6 @@ contract RecurringLottery {
     uint256 totalQuantity;
     address payable winner;
   }
-
   struct Entry {
     address payable buyer;
     uint256 quantity;
