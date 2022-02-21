@@ -1,4 +1,5 @@
-pragma solidity ^0.6.1;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
 
 contract RecurringLottery {
   struct Round {
@@ -21,7 +22,7 @@ contract RecurringLottery {
 
   // duration is in blocks. 1 day = ~5500 blocks
 
-  constructor(uint256 _duration) public {
+  constructor(uint256 _duration) {
     duration = _duration;
     round = 1;
     rounds[round].endBlock = block.number + duration;
@@ -36,7 +37,7 @@ contract RecurringLottery {
       rounds[round].drawBlock = block.number + duration + 5;
     }
     uint256 quantity = msg.value / TICKET_PRICE;
-    Entry memory entry = Entry(msg.sender, quantity);
+    Entry memory entry = Entry(payable(msg.sender), quantity);
     rounds[round].entries.push(entry);
     rounds[round].totalQuantity += quantity;
   }
@@ -65,7 +66,7 @@ contract RecurringLottery {
   function withdraw() public {
     uint256 amount = balances[msg.sender];
     balances[msg.sender] = 0;
-    msg.sender.transfer(amount);
+    payable(msg.sender).transfer(amount);
   }
 
   function deleteRound(uint256 _round) public {

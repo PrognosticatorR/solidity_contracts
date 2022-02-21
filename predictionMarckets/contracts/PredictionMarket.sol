@@ -1,11 +1,16 @@
-//SPDX-License-Identifier: UNLICENSED;
-pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
 
 contract PredictionMarket {
-  using SafeMath for uint256;
-  enum OrderType {Buy, Sell}
-  enum Result {Open, Yes, No}
+  enum OrderType {
+    Buy,
+    Sell
+  }
+  enum Result {
+    Open,
+    Yes,
+    No
+  }
 
   struct Order {
     address user;
@@ -35,8 +40,8 @@ contract PredictionMarket {
     require(msg.value > 0);
 
     owner = msg.sender;
-    deadLine = SafeMath.add(block.timestamp, duration);
-    shares[msg.sender] = SafeMath.div(msg.value, 100);
+    deadLine = (block.timestamp + duration);
+    shares[msg.sender] = (msg.value / 100);
     collateral = msg.value;
   }
 
@@ -46,7 +51,7 @@ contract PredictionMarket {
     require(price >= 0);
     require(price <= 100);
 
-    uint256 amount = SafeMath.div(msg.value, price);
+    uint256 amount = (msg.value / price);
     counter++;
     orders[counter] = Order(msg.sender, OrderType.Buy, amount, price);
     emit OrderPlaced(counter, msg.sender, OrderType.Buy, amount, price);
@@ -58,7 +63,7 @@ contract PredictionMarket {
     require(price > 0);
     require(price <= 100);
 
-    shares[msg.sender] = SafeMath.sub(shares[msg.sender], amount);
+    shares[msg.sender] = (shares[msg.sender] - amount);
     counter++;
     orders[counter] = Order(msg.sender, OrderType.Sell, amount, price);
     emit OrderPlaced(counter, msg.sender, OrderType.Sell, amount, price);
@@ -74,15 +79,15 @@ contract PredictionMarket {
     require(msg.value > 0);
     require(msg.value <= order.price * order.amount);
 
-    uint256 amount = SafeMath.div(msg.value, order.price);
-    uint256 fee = SafeMath.mul(SafeMath.mul(amount, order.price), SafeMath.div(TX_FEE_NUMERATOR, TX_FEE_DENOMINATOR));
-    uint256 feeShare = SafeMath.mul(amount, SafeMath.div(TX_FEE_NUMERATOR, TX_FEE_DENOMINATOR));
+    uint256 amount = (msg.value / order.price);
+    uint256 fee = (amount * order.price) * (TX_FEE_NUMERATOR / TX_FEE_DENOMINATOR);
+    uint256 feeShare = amount * (TX_FEE_NUMERATOR / TX_FEE_DENOMINATOR);
 
-    shares[msg.sender] = SafeMath.add(shares[msg.sender], SafeMath.sub(amount, feeShare));
-    shares[owner] = SafeMath.add(shares[owner], feeShare);
-    balances[order.user] = SafeMath.add(balances[order.user], SafeMath.sub(SafeMath.mul(amount, order.price), fee));
-    balances[owner] = SafeMath.add(balances[owner], fee);
-    order.amount = SafeMath.sub(order.amount, amount);
+    shares[msg.sender] = (shares[msg.sender] + (amount - feeShare));
+    shares[owner] = (shares[owner] + feeShare);
+    balances[order.user] = (balances[order.user] + ((amount * order.price) - fee));
+    balances[owner] = (balances[owner] + fee);
+    order.amount = (order.amount + amount);
     if (order.amount == 0) delete orders[orderId];
     emit TradeMatched(orderId, msg.sender, amount);
   }
@@ -97,15 +102,15 @@ contract PredictionMarket {
     require(amount <= order.amount);
     require(shares[msg.sender] >= amount);
 
-    uint256 fee = SafeMath.mul(SafeMath.mul(amount, order.price), SafeMath.div(TX_FEE_NUMERATOR, TX_FEE_DENOMINATOR));
-    uint256 feeShare = SafeMath.mul(amount, SafeMath.div(TX_FEE_NUMERATOR, TX_FEE_DENOMINATOR));
+    uint256 fee = (amount * order.price) * (TX_FEE_NUMERATOR / TX_FEE_DENOMINATOR);
+    uint256 feeShare = amount * (TX_FEE_NUMERATOR / TX_FEE_DENOMINATOR);
 
-    shares[msg.sender] = SafeMath.sub(shares[msg.sender], amount);
-    shares[order.user] = SafeMath.add(shares[order.user], SafeMath.sub(amount, feeShare));
-    shares[owner] = SafeMath.add(shares[owner], feeShare);
-    balances[msg.sender] = SafeMath.add(balances[msg.sender], SafeMath.sub(SafeMath.mul(amount, order.price), fee));
-    balances[owner] = SafeMath.add(balances[owner], fee);
-    order.amount = SafeMath.sub(order.amount, amount);
+    shares[msg.sender] = (shares[msg.sender] - amount);
+    shares[order.user] = (shares[order.user] + (amount - feeShare));
+    shares[owner] = (shares[owner] + feeShare);
+    balances[msg.sender] = (balances[msg.sender] + ((amount * order.price) - fee));
+    balances[owner] = (balances[owner] + fee);
+    order.amount = (order.amount - amount);
     if (order.amount == 0) delete orders[orderId];
     emit TradeMatched(orderId, msg.sender, amount);
   }
@@ -115,8 +120,8 @@ contract PredictionMarket {
 
     require(order.user == msg.sender);
 
-    if (order.orderType == OrderType.Buy) balances[msg.sender] = SafeMath.add(balances[msg.sender], SafeMath.mul(order.amount, order.price));
-    else shares[msg.sender] = SafeMath.add(shares[msg.sender], order.amount);
+    if (order.orderType == OrderType.Buy) balances[msg.sender] = (balances[msg.sender] + (order.amount * order.price));
+    else shares[msg.sender] = (shares[msg.sender] + order.amount);
     delete orders[orderId];
     emit OrderCanceled(orderId);
   }
@@ -127,7 +132,7 @@ contract PredictionMarket {
     require(result == Result.Open);
 
     result = _result ? Result.Yes : Result.No;
-    if (result == Result.No) balances[owner] = SafeMath.add(balances[owner], collateral);
+    if (result == Result.No) balances[owner] = (balances[owner] + collateral);
   }
 
   function withDraw() public {
@@ -136,7 +141,7 @@ contract PredictionMarket {
     balances[withdrawer] = 0;
 
     if (result == Result.Yes) {
-      payout = SafeMath.add(payout, SafeMath.mul(shares[withdrawer], 100));
+      payout = payout + (shares[withdrawer] * 100);
       shares[withdrawer] = 0;
     }
     withdrawer.transfer(payout);

@@ -1,4 +1,5 @@
-pragma solidity ^0.6.1;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
 
 contract CommitRevealPuzzle {
   uint256 public constant GUESS_DURATION_BLOCKS = 5;
@@ -10,10 +11,10 @@ contract CommitRevealPuzzle {
   uint256 public totalPrize;
 
   mapping(address => bytes32) public commitments;
-  address payable[] public winners;
+  address[] public winners;
   mapping(address => bool) public claimed;
 
-  constructor(bytes32 _commitment) public payable {
+  constructor(bytes32 _commitment) payable {
     creator = msg.sender;
     commitments[msg.sender] = _commitment;
     guessDeadline = block.number + GUESS_DURATION_BLOCKS;

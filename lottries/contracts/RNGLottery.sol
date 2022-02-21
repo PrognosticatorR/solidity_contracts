@@ -1,4 +1,5 @@
-pragma solidity ^0.6.1;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
 
 contract RNGLottery {
   uint256 public constant TICKET_PRICE = 1e17;
@@ -12,7 +13,7 @@ contract RNGLottery {
   uint256 public drawBlock;
   uint256 public revealDeadline;
 
-  constructor(uint256 duration, uint256 revealDuration) public {
+  constructor(uint256 duration, uint256 revealDuration) {
     ticketDeadline = block.number + duration;
     revealDeadline = ticketDeadline + revealDuration;
     drawBlock = revealDeadline + 5;
@@ -37,7 +38,7 @@ contract RNGLottery {
     require(hash == commitments[msg.sender]);
 
     seed = keccak256(abi.encodePacked(seed, N));
-    tickets.push(msg.sender);
+    tickets.push(payable(msg.sender));
   }
 
   function drawWinner() public {
@@ -50,6 +51,6 @@ contract RNGLottery {
 
   function withdraw() public {
     require(msg.sender == winner);
-    msg.sender.transfer(address(this).balance);
+    payable(msg.sender).transfer(address(this).balance);
   }
 }

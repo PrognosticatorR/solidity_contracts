@@ -1,4 +1,5 @@
-pragma solidity ^0.6.1;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
 
 contract Powerball {
   struct Round {
@@ -16,9 +17,9 @@ contract Powerball {
   uint256 public round;
   mapping(uint256 => Round) public rounds;
 
-  constructor() public {
+  constructor() {
     round = 1;
-    rounds[round].endTime = now + ROUND_LENGTH;
+    rounds[round].endTime = block.timestamp + ROUND_LENGTH;
   }
 
   function buy(uint256[6][] memory numbers) public payable {
@@ -29,17 +30,17 @@ contract Powerball {
       for (uint256 j = 0; j < 5; j++) require(numbers[i][j] <= MAX_NUMBER);
       require(numbers[i][5] <= MAX_POWERBALL_NUMBER);
     }
-    if (now > rounds[round].endTime) {
+    if (block.timestamp > rounds[round].endTime) {
       rounds[round].drawBlock = block.number + 5;
       round += 1;
-      rounds[round].endTime = now + ROUND_LENGTH;
+      rounds[round].endTime = block.timestamp + ROUND_LENGTH;
     }
     for (uint256 i = 0; i < numbers.length; i++) rounds[round].tickets[msg.sender].push(numbers[i]);
   }
 
   function drawNumbers(uint256 _round) public {
     uint256 drawBlock = rounds[round].drawBlock;
-    require(now > rounds[_round].endTime);
+    require(block.timestamp > rounds[_round].endTime);
     require(block.number >= drawBlock);
     require(rounds[_round].winningNumbers[0] == 0);
 
@@ -79,7 +80,8 @@ contract Powerball {
       else if (numberMatches == 2 && powerballMatches) payout += 7e15;
       else if (powerballMatches) payout += 4e15;
     }
-    msg.sender.transfer(payout);
+    address payable winner = payable(msg.sender);
+    winner.transfer(payout);
     delete rounds[_round].tickets[msg.sender];
   }
 
